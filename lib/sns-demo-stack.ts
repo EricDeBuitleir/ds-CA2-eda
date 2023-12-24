@@ -15,11 +15,15 @@ export class SNSDemoStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    const specificTopicArn = "arn:aws:sns:eu-west-1:130678322873:MyTopic";
+
+    const demoTopic = sns.Topic.fromTopicArn(this, "DemoTopic", specificTopicArn);
+
     // Integration rsources
 
-    const demoTopic = new sns.Topic(this, "DemoTopic", {
-      displayName: "Demo topic",
-    });
+    // const demoTopic = new sns.Topic(this, "DemoTopic", {
+    //   displayName: "Demo topic",
+    // });
 
     const queue = new sqs.Queue(this, "all-msg-queue", {
       receiveMessageWaitTime: cdk.Duration.seconds(5),
@@ -68,24 +72,24 @@ export class SNSDemoStack extends cdk.Stack {
 
     demoTopic.addSubscription(
       new subs.LambdaSubscription(processSNSMessageFn, {
-          filterPolicy: {
-            user_type: sns.SubscriptionFilter.stringFilter({
-                allowlist: ['Student','Lecturer']
-            }),
-          },
+        filterPolicy: {
+          user_type: sns.SubscriptionFilter.stringFilter({
+            allowlist: ['Student', 'Lecturer']
+          }),
+        },
       })
     );
-
+    
     demoTopic.addSubscription(
       new subs.SqsSubscription(queue, {
         rawMessageDelivery: true,
         filterPolicy: {
           user_type: sns.SubscriptionFilter.stringFilter({
-              denylist: ['Lecturer']  
+            denylist: ['Lecturer']
           }),
           source: sns.SubscriptionFilter.stringFilter({
-            matchPrefixes: ['Moodle','Slack']  
-        }),
+            matchPrefixes: ['Moodle', 'Slack']
+          }),
         },
       })
     );
