@@ -1,2 +1,3 @@
-# ds-CA2-eda
- CA2 for Distrubuted Systems. Event Driven Architecture
+
+
+aws s3 cp test.txt s3://a-bucket/test.txt --metadata '{"x-amz-meta-cms-id":"34533452"}'
