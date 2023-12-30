@@ -2,25 +2,18 @@
 import { SQSHandler } from "aws-lambda";
 import * as dynamoDB from 'aws-cdk-lib/aws-dynamodb';
 import {
-  GetObjectCommand,
-  PutObjectCommandInput,
-  GetObjectCommandInput,
+  DeleteObjectCommand,
   S3Client,
-  PutObjectCommand,
+  
   
 } from "@aws-sdk/client-s3";
 
-// Reference for Put objects: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/example_dynamodb_PutItem_section.html
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, PutCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 
 
 
-const s3 = new S3Client();
 
-// Reference for consts below (Line 19 and 20): https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/dynamodb-example-dynamodb-utilities.html
-// const client = new DynamoDBClient({});
-// const docClient = DynamoDBDocumentClient.from(client);
 
 const dbClient = createDDbDocClient();
 
@@ -50,14 +43,6 @@ export const handler: SQSHandler = async (event) => {
           throw new Error("Unsupported image type: ${imageType. ");
         }
         // process image upload 
-        // reference to syntax for putting an item into DynamoDB: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/example_dynamodb_PutItem_section.html
-        const putItem = new PutCommand({
-          TableName: "Img",
-          Item:{
-            "Name": srcKey,
-          },
-        });
-        await dbClient.send(putItem)
       } 
     
     }
