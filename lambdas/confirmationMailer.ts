@@ -2,6 +2,7 @@ import { SQSHandler } from "aws-lambda";
 // import AWS from 'aws-sdk';
 import { SES_EMAIL_FROM, SES_EMAIL_TO, SES_REGION } from "../env";
 import {SESClient,SendEmailCommand,SendEmailCommandInput,} from "@aws-sdk/client-ses";
+import { DynamoDBDocumentClient, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 
 if (!SES_EMAIL_TO || !SES_EMAIL_FROM || !SES_REGION) {
   throw new Error(
@@ -32,16 +33,19 @@ export const handler: SQSHandler = async (event: any) => {
         // Object key may have spaces or unicode non-ASCII characters.
         const srcKey = decodeURIComponent(s3e.object.key.replace(/\+/g, " "));
         try {
+
+          const supportType = isTypeImgSupported(srcKey)
           // const { name, email, message }: ContactDetails = {
           //   name: "The Photo Album",
           //   email: SES_EMAIL_FROM,
           //   message: `We received your Image. Its URL is s3://${srcBucket}/${srcKey}`,
           // };
-
+          if(supportType){
           const message = `We received your Image. Its URL is s3://${srcBucket}/${srcKey}`;
           // const params = sendEmailParams({ name, email, message });
           await sendEmail(message);
-        } catch (error: unknown) {
+        }
+      } catch (error: unknown) {
           console.log("ERROR is: ", error);
           // return;
         }
@@ -97,6 +101,13 @@ function getHtmlContent(message: String) {
     </html> 
   `;
 }
+
+
+function isTypeImgSupported(srcKey: String): boolean {
+  return srcKey.endsWith(".jpg") || srcKey.endsWith(".png") || srcKey.endsWith(".jpeg")
+}
+
+
 
 // function getTextContent({ name, email, message }: ContactDetails) {
 //   return `

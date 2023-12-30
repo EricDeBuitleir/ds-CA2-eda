@@ -2,7 +2,7 @@
 import { SQSHandler } from "aws-lambda";
 import * as dynamoDB from 'aws-cdk-lib/aws-dynamodb';
 import {
-  GetObjectCommand,
+  GetObjectCommand, 
   PutObjectCommandInput,
   GetObjectCommandInput,
   S3Client,
@@ -40,19 +40,19 @@ export const handler: SQSHandler = async (event) => {
         // Object key may have spaces or unicode non-ASCII characters.
         const srcKey = decodeURIComponent(s3e.object.key.replace(/\+/g, " "));
         // // Infer the image type from the file suffix.
-        // const typeMatch = srcKey.match(/\.([^.]*)$/);
-        // if (!typeMatch) {
-        //   console.log("Could not determine the image type.");
-        //   throw new Error("Could not determine the image type. ");
-        // }
-        // // Check that the image type is supported
-        // const imageType = typeMatch[1].toLowerCase();
-        // if (imageType != "jpeg" && imageType != "png") {
-        //   console.log(`Unsupported image type: ${imageType}`);
-        //   throw new Error("Unsupported image type: ${imageType. ");
-        // }
-        // process image upload 
-        // reference to syntax for deleting an item into DynamoDB: https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/dynamodb-example-dynamodb-utilities.html
+                                                                                                                    // const typeMatch = srcKey.match(/\.([^.]*)$/);
+                                                                                                                    // if (!typeMatch) {
+                                                                                                                    //   console.log("Could not determine the image type.");
+                                                                                                                    //   throw new Error("Could not determine the image type. ");
+                                                                                                                    // }
+                                                                                                                    // // Check that the image type is supported
+                                                                                                                    // const imageType = typeMatch[1].toLowerCase();
+                                                                                                                    // if (imageType != "jpeg" && imageType != "png") {
+                                                                                                                    //   console.log(`Unsupported image type: ${imageType}`);
+                                                                                                                    //   throw new Error("Unsupported image type: ${imageType. ");
+                                                                                                                    // }
+                                                                                                                    // process image upload 
+                                                                                                                    // reference to syntax for deleting an item into DynamoDB: https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/dynamodb-example-dynamodb-utilities.html
         const deleteItem = new DeleteCommand({
           TableName: "Img",
           Key:{ // Key is used instead of item
@@ -66,6 +66,8 @@ export const handler: SQSHandler = async (event) => {
   }
   
 };
+
+// Function taken from CA1
 function createDDbDocClient() {
   const ddbClient = new DynamoDBClient({ region: process.env.REGION });
   const marshallOptions = {

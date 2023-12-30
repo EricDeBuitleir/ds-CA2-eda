@@ -1,7 +1,7 @@
 import { SQSHandler } from "aws-lambda";
 // import AWS from 'aws-sdk';
 import { SES_EMAIL_FROM, SES_EMAIL_TO, SES_REGION } from "../env";
-import {SESClient,SendEmailCommand,SendEmailCommandInput,} from "@aws-sdk/client-ses";
+import {SESClient,SendEmailCommand,SendEmailCommandInput,DeleteObjectCommand} from "@aws-sdk/client-ses";
 
 if (!SES_EMAIL_TO || !SES_EMAIL_FROM || !SES_REGION) {
   throw new Error(
@@ -35,12 +35,17 @@ export const handler: SQSHandler = async (event: any) => {
         const srcKey = decodeURIComponent(s3e.object.key.replace(/\+/g, " "));
         try {
      
+          const supportType = isTypeImgSupported(srcKey)
 
+          if(!supportType){
           const message = `The image we recieved ${srcKey} has been rejected, please send a valid image type. Its URL is s3://${srcBucket}/${srcKey}`;
           // const params = sendEmailParams({ name, email, message });
           await rejectEmail(message);
           console.log("Email stating rejection sent")
-        } catch (error: unknown) {
+
+          await deleteUnsupportedImg(srcKey)
+        }
+       } catch (error: unknown) {
           console.log("ERROR is: ", error);
           // return;
         }
@@ -84,6 +89,9 @@ async function rejectEmail(message: String) {
 }
 }
 
+
+
+
 // function getHtmlContent({ name, email, message }: ContactDetails) {
 function getHtmlContent(message: String) {
 
@@ -96,6 +104,19 @@ function getHtmlContent(message: String) {
     </html> 
   `;
 }
+
+
+function isTypeImgSupported(srcKey: String): boolean {
+  return srcKey.endsWith(".jpg") || srcKey.endsWith(".png") || srcKey.endsWith(".jpeg")
+}
+
+
+// async function deleteUnsupportedImg(bucket: string, key: string) {
+async function deleteUnsupportedImg(key: string) {
+
+  try {
+    await client.send(new DeleteObjectCommand({ Key: key })
+    );
 
 // function getTextContent({ name, email, message }: ContactDetails) {
 //   return `
