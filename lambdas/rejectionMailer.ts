@@ -34,13 +34,9 @@ export const handler: SQSHandler = async (event: any) => {
         // Object key may have spaces or unicode non-ASCII characters.
         const srcKey = decodeURIComponent(s3e.object.key.replace(/\+/g, " "));
         try {
-          // const { name, email, message }: ContactDetails = {
-          //   name: "The Photo Album",
-          //   email: SES_EMAIL_FROM,
-          //   message: `We received your Image. Its URL is s3://${srcBucket}/${srcKey}`,
-          // };
+     
 
-          const message = `We received your Image. Its URL is s3://${srcBucket}/${srcKey}`,
+          const message = `The image we recieved ${srcKey} has been rejected, please send a valid image type. Its URL is s3://${srcBucket}/${srcKey}`;
           // const params = sendEmailParams({ name, email, message });
           await rejectEmail(message);
           console.log("Email stating rejection sent")

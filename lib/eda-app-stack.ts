@@ -141,6 +141,7 @@ newImageTopic.addSubscription(
   // Permissions
 
   imagesBucket.grantRead(processImageFn);
+  imageTable.grantReadWriteData(processImageFn)
 
   // Output
   

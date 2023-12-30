@@ -38,7 +38,7 @@ export const handler: SQSHandler = async (event: any) => {
           //   message: `We received your Image. Its URL is s3://${srcBucket}/${srcKey}`,
           // };
 
-          const message = `We received your Image. Its URL is s3://${srcBucket}/${srcKey}`,
+          const message = `We received your Image. Its URL is s3://${srcBucket}/${srcKey}`;
           // const params = sendEmailParams({ name, email, message });
           await sendEmail(message);
         } catch (error: unknown) {
