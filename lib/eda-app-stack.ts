@@ -39,11 +39,27 @@ export class EDAAppStack extends cdk.Stack {
     //   value: imagesBucket.bucketName,
     // });
 
+
+    //DLQ for rejectionEmail
+    const rejectQueue = new sqs.Queue(this, "Rejection-Email-DLQ", {
+      queueName: "Rejection-Email-DLQ",
+      // receiveMessageWaitTime: cdk.Duration.seconds(10),
+
+    });
+
     // Integration infrastructure
 
   const imageProcessQueue = new sqs.Queue(this, "img-created-queue", {
     receiveMessageWaitTime: cdk.Duration.seconds(10),
+    deadLetterQueue: {
+      queue: rejectQueue,
+      maxReceiveCount: 1
+
+    },
+
   });
+
+
 
   const mailerQ = new sqs.Queue(this, "mailer-queue", {
     receiveMessageWaitTime: cdk.Duration.seconds(10),
@@ -67,14 +83,25 @@ export class EDAAppStack extends cdk.Stack {
     }
   );
 
-  const mailerFn = new lambdanode.NodejsFunction(this, "mailer-function", {
+
+  // same as mailerFN but since it doesn't exist anymore, simply change the name
+  const confirmationMailerFn = new lambdanode.NodejsFunction(this, "confirmation-mailer-function", {
     runtime: lambda.Runtime.NODEJS_16_X,
     memorySize: 1024,
     timeout: cdk.Duration.seconds(3),
-    entry: `${__dirname}/../lambdas/mailer.ts`,
+    entry: `${__dirname}/../lambdas/confirmationMailer.ts`,
+  });
+
+  // same as confirmationMailerFn but to handle the rejection mailer class
+  const rejectionMailerFn = new lambdanode.NodejsFunction(this, "rejection-mailer-function", {
+    runtime: lambda.Runtime.NODEJS_16_X,
+    memorySize: 1024,
+    timeout: cdk.Duration.seconds(3),
+    entry: `${__dirname}/../lambdas/rejectionMailer.ts`,
   });
 
   
+
 
   // Event triggers
 
@@ -100,10 +127,16 @@ newImageTopic.addSubscription(
     batchSize: 5,
     maxBatchingWindow: cdk.Duration.seconds(10),
   }); 
+  const newImageRejectEventSource = new events.SqsEventSource(rejectQueue, {
+    batchSize: 5,
+    maxBatchingWindow: cdk.Duration.seconds(10),
+  }); 
 
   processImageFn.addEventSource(newImageEventSource);
+  rejectionMailerFn.addEventSource(newImageRejectEventSource);
 
-  mailerFn.addEventSource(newImageMailEventSource);
+
+  confirmationMailerFn.addEventSource(newImageMailEventSource);
 
   // Permissions
 
@@ -115,8 +148,8 @@ newImageTopic.addSubscription(
     value: imagesBucket.bucketName,
   });
 
-  
-  mailerFn.addToRolePolicy(
+  // same as mailerFn but changed to match refactored name
+  confirmationMailerFn.addToRolePolicy(
     new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: [
@@ -127,7 +160,23 @@ newImageTopic.addSubscription(
       resources: ["*"],
     })
   );
+
+  // same as confirmation above but to handle rejection
+  rejectionMailerFn.addToRolePolicy(
+    new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        "ses:SendEmail",
+        "ses:SendRawEmail",
+        "ses:SendTemplatedEmail",
+      ],
+      resources: ["*"],
+    })
+  );
+ 
   }
 }
+
+
  
 
