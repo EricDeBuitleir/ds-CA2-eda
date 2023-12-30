@@ -1,8 +1,8 @@
 import { SQSHandler } from "aws-lambda";
 // import AWS from 'aws-sdk';
 import { SES_EMAIL_FROM, SES_EMAIL_TO, SES_REGION } from "../env";
-import {SESClient,SendEmailCommand,SendEmailCommandInput,DeleteObjectCommand} from "@aws-sdk/client-ses";
-
+import {SESClient,SendEmailCommand,SendEmailCommandInput} from "@aws-sdk/client-ses";
+import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
 if (!SES_EMAIL_TO || !SES_EMAIL_FROM || !SES_REGION) {
   throw new Error(
     "Please add the SES_EMAIL_TO, SES_EMAIL_FROM and SES_REGION environment variables in an env.js file located in the root directory"
@@ -43,7 +43,7 @@ export const handler: SQSHandler = async (event: any) => {
           await rejectEmail(message);
           console.log("Email stating rejection sent")
 
-          await deleteUnsupportedImg(srcKey)
+          await deleteUnsupportedImg(srcBucket, srcKey)
         }
        } catch (error: unknown) {
           console.log("ERROR is: ", error);
@@ -112,11 +112,15 @@ function isTypeImgSupported(srcKey: String): boolean {
 
 
 // async function deleteUnsupportedImg(bucket: string, key: string) {
-async function deleteUnsupportedImg(key: string) {
+async function deleteUnsupportedImg(bucket: string,key: string) {
+try{
+    await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+    console.log(`Object ${key} deleted successfully from bucket ${bucket}`);
+  } catch (error) {
+    console.error(`Error deleting object ${key} from bucket ${bucket}:`, error);
+    throw error;
+  }
 
-  try {
-    await client.send(new DeleteObjectCommand({ Key: key })
-    );
 
 // function getTextContent({ name, email, message }: ContactDetails) {
 //   return `
@@ -126,4 +130,4 @@ async function deleteUnsupportedImg(key: string) {
 //         ✉️ ${email}
 //     ${message}
 //   `;
-// }
+}
