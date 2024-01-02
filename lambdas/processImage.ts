@@ -64,6 +64,8 @@ export const handler: SQSHandler = async (event) => {
   }
   
 };
+
+// taken from CA1 (addMovieReview class)
 function createDDbDocClient() {
   const ddbClient = new DynamoDBClient({ region: process.env.REGION });
   const marshallOptions = {

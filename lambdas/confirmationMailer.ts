@@ -54,6 +54,7 @@ export const handler: SQSHandler = async (event: any) => {
   }
 };
 
+// same as mailer from class, just with  email and name taken out, as well as using DynamoDB send syntax
 async function sendEmail(message: String) {
   try{
   const parameters: SendEmailCommandInput = {
